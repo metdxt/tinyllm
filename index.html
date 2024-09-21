@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TinyLLM</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">
     <style>
         /* Reset some basic elements */
         * {
@@ -19,9 +18,48 @@
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
+            background-color: var(--background-color);
+            color: var(--text-color);
         }
         button {
             cursor: pointer;
+        }
+        /* Define color variables */
+        :root {
+            --background-color: #ffffff;
+            --text-color: #000000;
+            --primary-color: #586a81;
+            --primary-text-color: #ffffff;
+            --secondary-bg-color: #f9f9f9;
+            --secondary-text-color: #41464b;
+            --border-color: #ddd;
+            --shadow-color: rgba(50, 50, 50, 0.4);
+            --user-message-bg: #d1e7dd;
+            --user-message-text: #0f5132;
+            --bot-message-bg: #e2e3e5;
+            --bot-message-text: #41464b;
+            --code-bg-color: #f3f3f3;
+            --dialog-bg-color: #fefefe;
+            --dialog-overlay-color: rgba(0, 0, 0, 0.3);
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background-color: #323232;
+                --text-color: #e0e0e0;
+                --primary-color: #586a81;
+                --primary-text-color: #ffffff;
+                --secondary-bg-color: #282828;
+                --secondary-text-color: #e0e0e0;
+                --border-color: #444;
+                --shadow-color: rgba(0, 0, 0, 0.7);
+                --user-message-bg: #484848;
+                --user-message-text: #e6e6e6;
+                --bot-message-bg: #424242;
+                --bot-message-text: #e0e0e0;
+                --code-bg-color: #2d2d2d;
+                --dialog-bg-color: #282828;
+                --dialog-overlay-color: rgba(0, 0, 0, 0.8);
+            }
         }
         /* Header Styles */
         header {
@@ -29,8 +67,8 @@
             flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
-            background-color: #0d6efd;
-            color: #fff;
+            background-color: var(--primary-color);
+            color: var(--primary-text-color);
             padding: 10px;
         }
         header h1 {
@@ -45,7 +83,7 @@
             margin: 0;
             width: 32px;
             height: 32px;
-            fill: #fff;
+            fill: var(--primary-text-color);
             font-size: 1.5rem;
         }
         #settings-button:hover {
@@ -54,23 +92,24 @@
         /* Dialog Styles */
         dialog {
             margin: auto;
-            border: 1px solid #ccc;
+            border: 1px solid var(--border-color);
             border-radius: 6pt;
             padding: 16px;
-            box-shadow: 2pt 2pt 2pt #32323264;
+            box-shadow: 2pt 2pt 2pt var(--shadow-color);
             max-width: 500px;
             width: 90%;
-            background-color: #fefefe;
+            background-color: var(--dialog-bg-color);
+            color: var(--text-color);
         }
         dialog::backdrop {
-            background: rgba(0, 0, 0, 0.3);
+            background: var(--dialog-overlay-color);
         }
         dialog header {
             display: flex;
             flex-direction: row;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 10px;
             margin-bottom: 20px;
         }
@@ -90,10 +129,12 @@
             border: none;
             font-size: 1.2em;
             cursor: pointer;
+            color: var(--text-color);
         }
         dialog table {
             width: 100%;
             border-collapse: collapse;
+            color: var(--text-color);
         }
         dialog table td {
             padding: 8px 4px;
@@ -104,40 +145,45 @@
         dialog table textarea {
             width: 100%;
             padding: 6px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--border-color);
             border-radius: 4px;
+            background-color: var(--background-color);
+            color: var(--text-color);
         }
         dialog button {
             margin-top: 20px;
             padding: 10px 16px;
-            background-color: #0d6efd;
-            color: #fff;
+            background-color: var(--primary-color);
+            color: var(--primary-text-color);
             border: none;
             border-radius: 4px;
             cursor: pointer;
         }
         dialog button:hover {
-            background-color: #0b5ed7;
+            background-color: var(--primary-color);
+            opacity: 0.9;
         }
         button#settings-button {
-            background-color: white;
+            background-color: var(--primary-text-color);
             border-radius: 100%;
         }
         /* Main Styles */
         main {
             width: min(100%, 90ch);
             margin: 10px auto;
-            border: 1px solid #323232;
+            border: 1px solid var(--border-color);
             border-radius: 6pt;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            background-color: var(--background-color);
         }
         #chat-history {
             flex-grow: 1;
             padding: 16px;
             overflow-y: auto;
-            background-color: #f9f9f9;
+            background-color: var(--secondary-bg-color);
+            color: var(--text-color);
         }
         .message {
             margin-bottom: 16px;
@@ -149,8 +195,8 @@
             text-align: right;
         }
         .message.user p {
-            background-color: #d1e7dd;
-            color: #0f5132;
+            background-color: var(--user-message-bg);
+            color: var(--user-message-text);
             display: inline-block;
             padding: 8px 12px;
             border-radius: 12px;
@@ -163,8 +209,8 @@
             text-align: left;
         }
         .message.bot p {
-            background-color: #e2e3e5;
-            color: #41464b;
+            background-color: var(--bot-message-bg);
+            color: var(--bot-message-text);
             display: inline-block;
             padding: 8px 12px;
             border-radius: 12px;
@@ -175,7 +221,8 @@
         /* Form Styles */
         .form {
             display: flex;
-            border-top: 1px solid #ddd;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--background-color);
         }
         .form textarea {
             flex-grow: 1;
@@ -184,21 +231,25 @@
             font-size: 1em;
             resize: none;
             height: 60px;
+            background-color: var(--background-color);
+            color: var(--text-color);
         }
         .form button {
             padding: 0 16px;
             border: none;
-            background-color: #0d6efd;
-            color: white;
+            background-color: var(--primary-color);
+            color: var(--primary-text-color);
             font-size: 1em;
+            cursor: pointer;
         }
         .form button:hover {
-            background-color: #0b5ed7;
+            background-color: var(--primary-color);
+            opacity: 0.9;
         }
         .disclaimer {
             margin-top: 20px;
             font-size: 0.9em;
-            color: #555;
+            color: var(--text-color);
             text-align: center;
             font-style: italic;
         }
@@ -206,66 +257,79 @@
         .markdown-content h1 {
             font-size: 2em;
             margin-bottom: 0.5em;
+            color: var(--text-color);
         }
         .markdown-content h2 {
             font-size: 1.75em;
             margin-bottom: 0.5em;
+            color: var(--text-color);
         }
         .markdown-content h3 {
             font-size: 1.5em;
             margin-bottom: 0.5em;
+            color: var(--text-color);
         }
         .markdown-content h4 {
             font-size: 1.25em;
             margin-bottom: 0.5em;
+            color: var(--text-color);
         }
         .markdown-content h5 {
             font-size: 1em;
             margin-bottom: 0.5em;
+            color: var(--text-color);
         }
         .markdown-content h6 {
             font-size: 0.85em;
             margin-bottom: 0.5em;
+            color: var(--text-color);
         }
         .markdown-content p {
             margin-bottom: 1em;
+            color: var(--text-color);
         }
         .markdown-content strong {
             font-weight: bold;
+            color: var(--text-color);
         }
         .markdown-content em {
             font-style: italic;
+            color: var(--text-color);
         }
         .markdown-content blockquote {
-            border-left: 4px solid #ccc;
+            border-left: 4px solid var(--border-color);
             padding-left: 1em;
-            color: #666;
+            color: var(--secondary-text-color);
             margin: 1em 0;
         }
         .markdown-content ul,
         .markdown-content ol {
             margin-left: 1.5em;
             margin-bottom: 1em;
+            color: var(--text-color);
         }
         .markdown-content li {
             margin-bottom: 0.5em;
         }
         .markdown-content code {
             font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
-            background-color: #f3f3f3;
+            background-color: var(--code-bg-color);
             padding: 2px 4px;
             border-radius: 4px;
+            color: var(--text-color);
         }
         .markdown-content pre {
-            background-color: #f3f3f3;
+            background-color: var(--code-bg-color);
             padding: 8px;
             border-radius: 4px;
             overflow-x: auto;
+            color: var(--text-color);
         }
         .markdown-content pre code {
             display: block;
             padding: 0;
             background: none;
+            border: none;
         }
         .markdown-content img {
             max-width: 100%;
@@ -275,15 +339,62 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 1em;
+            color: var(--text-color);
         }
         .markdown-content th,
         .markdown-content td {
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             padding: 8px;
         }
         /* Ensure code blocks are scrollable on small screens */
         pre {
             overflow-x: auto;
+        }
+    </style>
+    <style>
+        /* Tomorrow Night Eighties Theme */
+        /* Original theme - https://github.com/chriskempson/tomorrow-theme */
+        /* https://jmblog.github.io/color-themes-for-google-code-highlightjs */
+        .tomorrow-comment, pre .hljs-comment, pre .hljs-title {
+        color: #999999;
+        }
+
+        .tomorrow-red, pre .hljs-variable, pre .hljs-attribute, pre .hljs-tag, pre .hljs-regexp, pre .hljs-ruby .hljs-constant, pre .hljs-xml .hljs-tag .hljs-title, pre .hljs-xml .hljs-pi, pre .hljs-xml .hljs-doctype, pre .hljs-html .hljs-doctype, pre .hljs-css .hljs-id, pre .hljscss .hljs-class, pre .hljs-css .hljs-pseudo {
+        color: #f2777a;
+        }
+
+        .tomorrow-orange, pre .hljs-number, pre .hljs-preprocessor, pre .hljs-built_in, pre .hljs-literal, pre .hljs-params, pre .hljs-constant {
+        color: #f99157;
+        }
+
+        .tomorrow-yellow, pre .hljs-class, pre .hljs-ruby .hljs-class .hljs-title, pre .hljs-css .hljs-rules .hljs-attribute {
+        color: #ffcc66;
+        }
+
+        .tomorrow-green, pre .hljs-string, pre .hljs-value, pre .hljs-inheritance, pre .hljs-header, pre .hljs-ruby .symbol, pre .hljs-xml .hljs-cdata {
+        color: #99cc99;
+        }
+
+        .tomorrow-aqua, pre .hljs-css .hljs-hexcolor {
+        color: #66cccc;
+        }
+
+        .tomorrow-blue, pre .hljs-function, pre .hljs-python .hljs-decorator, pre .hljs-python .hljs-title, pre .hljs-ruby .hljs-function .hljs-title, pre .hljs-ruby .hljs-title .hljs-keyword, pre .hljs-perl .hljs-sub, pre .hljs-javascript .hljs-title, pre .hljs-coffeescript .hljs-title {
+        color: #6699cc;
+        }
+
+        .tomorrow-purple, pre .hljs-keyword, pre .hljs-javascript .hljs-function {
+        color: #cc99cc;
+        }
+
+        pre code {
+        display: block;
+        background: #2d2d2d;
+        color: #cccccc;
+        font-family: Menlo, Monaco, Consolas, monospace;
+        line-height: 1.5;
+        border: 1px solid #ccc;
+        padding: 10px;
         }
     </style>
     <!-- Include marked.js for Markdown parsing -->
