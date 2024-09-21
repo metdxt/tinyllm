@@ -2,11 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TinyLLM</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">
     <style>
-        * {margin: 0;padding: 0;box-sizing: border-box;}
+        /* Reset some basic elements */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html {
+            /* Set base font size for rem calculations */
+            font-size: 16px;
+        }
         body {
             font-family: Arial, sans-serif;
+            line-height: 1.6;
         }
         button {
             cursor: pointer;
@@ -14,11 +26,12 @@
         /* Header Styles */
         header {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
             background-color: #0d6efd;
             color: #fff;
-            padding: 10px 20px;
+            padding: 10px;
         }
         header h1 {
             font-size: 1.5em;
@@ -33,10 +46,7 @@
             width: 32px;
             height: 32px;
             fill: #fff;
-        }
-        #settings-button svg {
-            width: 100%;
-            height: 100%;
+            font-size: 1.5rem;
         }
         #settings-button:hover {
             opacity: 0.8;
@@ -49,6 +59,7 @@
             padding: 16px;
             box-shadow: 2pt 2pt 2pt #32323264;
             max-width: 500px;
+            width: 90%;
             background-color: #fefefe;
         }
         dialog::backdrop {
@@ -108,10 +119,14 @@
         dialog button:hover {
             background-color: #0b5ed7;
         }
-        /* Rest of your existing styles for main, messages, etc. */
+        button#settings-button {
+            background-color: white;
+            border-radius: 100%;
+        }
+        /* Main Styles */
         main {
-            max-width: 90ch;
-            margin: 20px auto;
+            width: min(100%, 90ch);
+            margin: 10px auto;
             border: 1px solid #323232;
             border-radius: 6pt;
             display: flex;
@@ -127,6 +142,8 @@
         .message {
             margin-bottom: 16px;
             line-height: 1.4em;
+            word-wrap: break-word;
+            word-break: break-word;
         }
         .message.user {
             text-align: right;
@@ -137,9 +154,10 @@
             display: inline-block;
             padding: 8px 12px;
             border-radius: 12px;
-            max-width: 80%;
+            max-width: 100%;
             word-wrap: break-word;
             white-space: pre-wrap;
+            text-align: left;
         }
         .message.bot {
             text-align: left;
@@ -150,10 +168,11 @@
             display: inline-block;
             padding: 8px 12px;
             border-radius: 12px;
-            max-width: 80%;
+            max-width: 100%;
             word-wrap: break-word;
             white-space: pre-wrap;
         }
+        /* Form Styles */
         .form {
             display: flex;
             border-top: 1px solid #ddd;
@@ -183,16 +202,99 @@
             text-align: center;
             font-style: italic;
         }
+        /* Styles for Markdown Elements */
+        .markdown-content h1 {
+            font-size: 2em;
+            margin-bottom: 0.5em;
+        }
+        .markdown-content h2 {
+            font-size: 1.75em;
+            margin-bottom: 0.5em;
+        }
+        .markdown-content h3 {
+            font-size: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        .markdown-content h4 {
+            font-size: 1.25em;
+            margin-bottom: 0.5em;
+        }
+        .markdown-content h5 {
+            font-size: 1em;
+            margin-bottom: 0.5em;
+        }
+        .markdown-content h6 {
+            font-size: 0.85em;
+            margin-bottom: 0.5em;
+        }
+        .markdown-content p {
+            margin-bottom: 1em;
+        }
+        .markdown-content strong {
+            font-weight: bold;
+        }
+        .markdown-content em {
+            font-style: italic;
+        }
+        .markdown-content blockquote {
+            border-left: 4px solid #ccc;
+            padding-left: 1em;
+            color: #666;
+            margin: 1em 0;
+        }
+        .markdown-content ul,
+        .markdown-content ol {
+            margin-left: 1.5em;
+            margin-bottom: 1em;
+        }
+        .markdown-content li {
+            margin-bottom: 0.5em;
+        }
+        .markdown-content code {
+            font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+            background-color: #f3f3f3;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .markdown-content pre {
+            background-color: #f3f3f3;
+            padding: 8px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .markdown-content pre code {
+            display: block;
+            padding: 0;
+            background: none;
+        }
+        .markdown-content img {
+            max-width: 100%;
+            height: auto;
+        }
+        .markdown-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1em;
+        }
+        .markdown-content th,
+        .markdown-content td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        /* Ensure code blocks are scrollable on small screens */
+        pre {
+            overflow-x: auto;
+        }
     </style>
+    <!-- Include marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 </head>
 <body>
     <header>
         <h1>TinyLLM</h1>
         <button onclick="openSettings()" id="settings-button" title="Settings">
-            <!-- Settings Icon (SVG) -->
-            <svg viewBox="0 0 24 24">
-                <path fill="currentColor" d="M12 1a2 2 0 012 2v2.75a7.35 7.35 0 013.05 1.25l1.95-1.95a2 2 0 112.83 2.83l-1.95 1.95A7.35 7.35 0 0119.25 12H22a2 2 0 110 4h-2.75a7.35 7.35 0 01-1.25 3.05l1.95 1.95a2 2 0 11-2.83 2.83l-1.95-1.95A7.35 7.35 0 0112 19.25V22a2 2 0 11-4 0v-2.75a7.35 7.35 0 01-3.05-1.25l-1.95 1.95a2 2 0 11-2.83-2.83l1.95-1.95A7.35 7.35 0 014.75 12H2a2 2 0 110-4h2.75a7.35 7.35 0 011.25-3.05L4.05 3a2 2 0 112.83-2.83l1.95 1.95A7.35 7.35 0 0112 4.75V2a2 2 0 012-2zm0 6a6 6 0 100 12 6 6 0 000-12z"/>
-            </svg>
+            ⚙️
         </button>
     </header>
     <dialog id="settings-dialog">
@@ -229,7 +331,7 @@
         </table>
         <button onclick="saveSettings()">Save Settings</button>
         <div class="disclaimer">
-            <p>Your settings are saved locally in your browser. However, the API Key, API URL, System Prompt, and your messages are sent to the LLM server (defined in API URL) when making requests.</p>
+            <p>Your settings are saved locally in your browser and never transferred to any third parties.</p>
         </div>
     </dialog>
     <main>
@@ -240,7 +342,25 @@
         </div>
     </main>
     <script>
+        marked.setOptions({
+            gfm: true,
+            breaks: true
+        });
         let settings_dialog = document.getElementById("settings-dialog");
+        let chat_history = []
+        let max_tokens_map = {
+            'gpt-4o-2024-08-06': 16384,
+            'chatgpt-4o-latest': 16384,
+            'gpt-4o-mini': 16384,
+            'gpt-4o-mini-2024-07-18': 16384,
+            'o1-preview': 32768,
+            'o1-preview-2024-09-12': 32768,
+            'o1-mini': 65536,
+            'o1-mini-2024-09-12': 65536,
+            'gpt-4': 8192,
+            'gpt-4-0613': 8192,
+            'gpt-4-0314': 8192 
+        }
 
         function openSettings() {
             settings_dialog.showModal();
@@ -271,7 +391,7 @@
 
         loadSettings();
 
-        async function queryLLMAPI(systemPrompt, userPrompt) {
+        async function queryLLMAPI() {
             const apiType = localStorage.getItem('api-type');
             const apiUrl = localStorage.getItem('api-url');
             const apiKey = localStorage.getItem('api-key');
@@ -285,6 +405,10 @@
             try {
                 let responseText = '';
                 if (apiType === 'openai') {
+                    let max_tokens = max_tokens_map[model] ?? 4096
+                    if (model.startsWith('o1-')) {
+                        chat_history = chat_history.filter((message) => {return message.role !== 'system'})
+                    }
                     const response = await fetch(apiUrl, {
                         method: 'POST',
                         headers: {
@@ -293,11 +417,8 @@
                         },
                         body: JSON.stringify({
                             model: model,
-                            max_tokens: 4096,
-                            messages: [
-                                { role: 'system', content: systemPrompt },
-                                { role: 'user', content: userPrompt }
-                            ]
+                            max_tokens: max_tokens,
+                            messages: chat_history
                         })
                     });
                     const data = await response.json();
@@ -307,6 +428,7 @@
                         responseText = data.choices[0].message.content.trim();
                     }
                 } else if (apiType === 'anthropic') {
+                    // TODO: rewrite to new API
                     const prompt = `${systemPrompt}\n\nHuman: ${userPrompt}\n\nAssistant:`;
                     const response = await fetch(apiUrl, {
                         method: 'POST',
@@ -348,11 +470,17 @@
             // Display user's message
             addMessage('user', userText);
 
+            // Add user message to chat history
+            chat_history.push({role: 'user', content: userText});
+
             // Display bot is typing...
             const botMessageId = addMessage('bot', 'Typing...');
 
             // Query the API
-            const responseText = await queryLLMAPI(systemPrompt, userText);
+            const responseText = await queryLLMAPI();
+
+            // Update chat history with assistant's response
+            chat_history.push({role: 'assistant', content: responseText});
 
             // Update bot's message
             updateMessage(botMessageId, responseText);
@@ -366,7 +494,13 @@
             messageDiv.id = messageId;
 
             const messageContent = document.createElement('p');
-            messageContent.textContent = text;
+            messageContent.classList.add('markdown-content'); // Add class for markdown styles
+
+            // Parse Markdown and set as HTML content
+            messageContent.innerHTML = marked.parse(text);
+            for (let element of messageContent.querySelectorAll('code')) {
+                hljs.highlightElement(element);
+            }
 
             messageDiv.appendChild(messageContent);
             chatHistory.appendChild(messageDiv);
@@ -378,7 +512,12 @@
             const messageDiv = document.getElementById(messageId);
             if (messageDiv) {
                 const messageContent = messageDiv.querySelector('p');
-                messageContent.textContent = newText;
+
+                // Parse Markdown and update HTML content
+                messageContent.innerHTML = marked.parse(newText);
+                for (let element of messageContent.querySelectorAll('code')) {
+                    hljs.highlightElement(element);
+                }
             }
         }
     </script>
