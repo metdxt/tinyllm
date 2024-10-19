@@ -577,6 +577,12 @@
 
             // Get the system prompt from settings
             const systemPrompt = localStorage.getItem('system-prompt') || 'You are a helpful assistant.';
+            if (chat_history.length == 0) {
+                chat_history.push({
+                    role: "system",
+                    content: systemPrompt
+                });
+            }
 
             // Display user's message
             addMessage('user', userText);
