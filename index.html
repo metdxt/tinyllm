@@ -442,6 +442,34 @@
         <option value="32768"></option>
         <option value="65536"></option>
     </datalist>
+
+    <datalist id="openai-models">
+        <option value="chatgpt-4o-latest"></option>
+        <option value="gpt-4"></option>
+        <option value="gpt-4-0125-preview"></option>
+        <option value="gpt-4-0314"></option>
+        <option value="gpt-4-0613"></option>
+        <option value="gpt-4-1106-preview"></option>
+        <option value="gpt-4-turbo"></option>
+        <option value="gpt-4-turbo-2024-04-09"></option>
+        <option value="gpt-4-turbo-preview"></option>
+        <option value="gpt-4o-2024-05-13"></option>
+        <option value="gpt-4o-2024-08-06"></option>
+        <option value="gpt-4o-mini"></option>
+        <option value="gpt-4o-mini-2024-07-18"></option>
+        <option value="o1-mini"></option>
+        <option value="o1-mini-2024-09-12"></option>
+        <option value="o1-preview"></option>
+        <option value="o1-preview-2024-09-12"></option>
+    </datalist>
+
+    <datalist id="anthropic-models">
+        <option value="claude-3-5-sonnet-20240620"></option>
+        <option value="claude-3-opus-20240229"></option>
+        <option value="claude-3-sonnet-20240229"></option>
+        <option value="claude-3-haiku-20240307"></option>	
+    </datalist>
+
     <dialog id="settings-dialog">
         <header>
             <p>Settings</p>
@@ -518,6 +546,10 @@
             'claude-3-5-sonnet-20240620': 8192
         }
 
+        document.getElementById('api-type').addEventListener('change', (e) => {
+            document.getElementById('model').setAttribute('list', `${e.target.value.toLowerCase()}-models`)
+        })
+
         const maxTokensSlider = document.querySelector('input#max-out-tokens');
         const maxTokensValue = document.querySelector('input#max-out-tokens-value')
         
@@ -591,6 +623,7 @@
             maxTokensValue.value = localStorage.getItem('max-out-tokens') || 4096;
             maxTokensSlider.value = maxTokensValue.value;
             checkMaxTokensConstraint();
+            document.getElementById('model').setAttribute('list', `${e.target.value.toLowerCase()}-models`)
         }
 
         loadSettings();
