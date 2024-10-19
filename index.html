@@ -194,7 +194,7 @@
         .message.user {
             text-align: right;
         }
-        .message.user p {
+        .message.user .markdown-content {
             background-color: var(--user-message-bg);
             color: var(--user-message-text);
             display: inline-block;
@@ -208,7 +208,7 @@
         .message.bot {
             text-align: left;
         }
-        .message.bot p {
+        .message.bot .markdown-content {
             background-color: var(--bot-message-bg);
             color: var(--bot-message-text);
             display: inline-block;
@@ -349,6 +349,21 @@
         /* Ensure code blocks are scrollable on small screens */
         pre {
             overflow-x: auto;
+        }
+
+        pre.original-content {
+            display: none;
+        }
+
+        button {
+            padding: 3pt 6pt;
+            border: none;
+            border-radius: 12px;
+            background-color: #323232;
+            color:#cccccc;
+        }
+        button:hover {
+            color: var(--primary-color);
         }
     </style>
     <style>
@@ -610,8 +625,13 @@
             messageDiv.classList.add('message', sender);
             messageDiv.id = messageId;
 
-            const messageContent = document.createElement('p');
+            const messageContent = document.createElement('div');
             messageContent.classList.add('markdown-content'); // Add class for markdown styles
+            
+            const originalContent = document.createElement('pre');
+            originalContent.classList.add('original-content');
+            originalContent.textContent = text;
+
 
             // Parse Markdown and set as HTML content
             messageContent.innerHTML = marked.parse(text);
@@ -619,7 +639,21 @@
                 hljs.highlightElement(element);
             }
 
+            const messageControls = document.createElement('div');
+            messageControls.classList.add('msg-controls');
+
+            { // Copy button
+                const copyButton = document.createElement('button');
+                copyButton.textContent = 'Copy';
+                messageControls.appendChild(copyButton);
+                copyButton.onclick = (e) => {
+                    navigator.clipboard.writeText(document.querySelector(`div#${messageId} pre.original-content`).textContent)
+                }
+            }
+
             messageDiv.appendChild(messageContent);
+            messageDiv.appendChild(originalContent);
+            messageDiv.appendChild(messageControls);
             chatHistory.appendChild(messageDiv);
             chatHistory.scrollTop = chatHistory.scrollHeight;
             return messageId;
@@ -628,8 +662,9 @@
         function updateMessage(messageId, newText) {
             const messageDiv = document.getElementById(messageId);
             if (messageDiv) {
-                const messageContent = messageDiv.querySelector('p');
-
+                const messageContent = messageDiv.querySelector('div.markdown-content');
+                const originalContent = messageDiv.querySelector('pre.original-content');
+                originalContent.textContent = newText;
                 // Parse Markdown and update HTML content
                 messageContent.innerHTML = marked.parse(newText);
                 for (let element of messageContent.querySelectorAll('code')) {
