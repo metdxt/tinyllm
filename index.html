@@ -554,8 +554,24 @@
                         responseText = data.choices[0].message.content.trim();
                     }
                 } else if (apiType === 'anthropic') {
-                    // TODO: rewrite to new API
-                    const prompt = `${systemPrompt}\n\nHuman: ${userPrompt}\n\nAssistant:`;
+                    let claudeMessages = []
+                    let system = ""
+                    for (msg of chat_history) {
+                        if (msg.role == "system") {
+                            system += "\n" + msg.text;
+                            system.trim();
+                        }
+                        else {
+                            const mostRecent = claudeMessages[claudeMessages.length - 1];
+                            if (mostRecent && mostRecent.role == msg.role) {
+                                mostRecent.content += "\n" + msg.content;
+                                mostRecent.content.trim()
+                            }
+                            else {
+                                claudeMessages.push(msg);
+                            }
+                        }
+                    }
                     const response = await fetch(apiUrl, {
                         method: 'POST',
                         headers: {
@@ -563,10 +579,10 @@
                             'x-api-key': apiKey
                         },
                         body: JSON.stringify({
-                            prompt: prompt,
                             model: model,
-                            max_tokens_to_sample: 500,
-                            stop_sequences: ['\n\nHuman:'],
+                            messages: claudeMessages,
+                            system: system,
+                            max_tokens: 1024,
                             temperature: 0.7,
                         })
                     });
@@ -574,7 +590,7 @@
                     if (data.error) {
                         responseText = 'Error: ' + data.error.message;
                     } else {
-                        responseText = data.completion.trim();
+                        responseText = data.content[0].text;
                     }
                 }
                 return responseText;
