@@ -365,6 +365,17 @@
         button:hover {
             color: var(--primary-color);
         }
+        div#settings-warnings {
+            display: flex;
+            flex-direction: column;
+            gap: 12pt;
+            padding-top: 6pt;
+        }
+        .warn {
+            border: orangered 1px solid;
+            border-radius: 12px;
+            padding: 6pt 12pt;
+        }
     </style>
     <style>
         /* Tomorrow Night Eighties Theme */
@@ -423,6 +434,14 @@
             ⚙️
         </button>
     </header>
+
+    <datalist id="common-max-tokens">
+        <option value="4096"></option>
+        <option value="8192"></option>
+        <option value="16384"></option>
+        <option value="32768"></option>
+        <option value="65536"></option>
+    </datalist>
     <dialog id="settings-dialog">
         <header>
             <p>Settings</p>
@@ -454,8 +473,18 @@
                 <td>System Prompt</td>
                 <td><textarea id="system-prompt" placeholder="e.g., You are a helpful assistant." rows="4"></textarea></td>
             </tr>
+            <tr>
+                <td>Max output tokens</td>
+                <td>
+                    <input id="max-out-tokens" type="range" min="1" max="65536" step="1" list="common-max-tokens">
+                    <input id="max-out-tokens-value" type="number"></span>
+                </td>
+            </tr>
         </table>
         <button onclick="saveSettings()">Save Settings</button>
+        <div id="settings-warnings">
+
+        </div>
         <div class="disclaimer">
             <p>Your settings are saved locally in your browser and never transferred to any third parties.</p>
         </div>
@@ -485,7 +514,51 @@
             'o1-mini-2024-09-12': 65536,
             'gpt-4': 8192,
             'gpt-4-0613': 8192,
-            'gpt-4-0314': 8192 
+            'gpt-4-0314': 8192,
+            'claude-3-5-sonnet-20240620': 8192
+        }
+
+        const maxTokensSlider = document.querySelector('input#max-out-tokens');
+        const maxTokensValue = document.querySelector('input#max-out-tokens-value')
+        
+        function checkMaxTokensConstraint() {
+            const model = document.getElementById('model').value;
+            const model_max = max_tokens_map[model] || Infinity;
+            if (maxTokensValue.value > model_max) {
+                setWarning('max-tokens', `'${model}' only supports up to ${model_max} output tokens. Value will be trimmed.`);
+            } else {
+                clearWarning('max-tokens');
+            }
+        }
+
+        maxTokensSlider.addEventListener("input", (event) => {
+            maxTokensValue.value = maxTokensSlider.value;
+            checkMaxTokensConstraint();
+        });
+        maxTokensValue.addEventListener("input", (event) => {
+            maxTokensSlider.value = maxTokensValue.value;
+            checkMaxTokensConstraint();
+        });
+
+        function setWarning(id, text) {
+            console.log(text);
+            let warn = document.getElementById(`warn-${id}`);
+            if (warn) {
+                warn.textContent = text;
+            }
+            else {
+                warn = document.createElement('p');
+                warn.id = `warn-${id}`;
+                warn.classList.add('warn');
+                warn.textContent = text;
+                document.getElementById('settings-warnings').appendChild(warn);
+            }
+        }
+        function clearWarning(id) {
+            let warn = document.getElementById(`warn-${id}`);
+            if (warn) {
+                warn.remove();
+            }
         }
 
         function openSettings() {
@@ -503,6 +576,7 @@
             localStorage.setItem('api-key', document.getElementById('api-key').value);
             localStorage.setItem('model', document.getElementById('model').value);
             localStorage.setItem('system-prompt', document.getElementById('system-prompt').value);
+            localStorage.setItem('max-out-tokens', maxTokensValue.value);
             closeSettings();
         }
 
@@ -513,6 +587,10 @@
             document.getElementById('api-key').value = localStorage.getItem('api-key') || '';
             document.getElementById('model').value = localStorage.getItem('model') || 'gpt-3.5-turbo';
             document.getElementById('system-prompt').value = localStorage.getItem('system-prompt') || 'You are a helpful assistant.';
+            
+            maxTokensValue.value = localStorage.getItem('max-out-tokens') || 4096;
+            maxTokensSlider.value = maxTokensValue.value;
+            checkMaxTokensConstraint();
         }
 
         loadSettings();
@@ -530,8 +608,8 @@
 
             try {
                 let responseText = '';
+                let max_tokens = Math.min(maxTokensValue.value, max_tokens_map[model] ?? maxTokensValue.value)
                 if (apiType === 'openai') {
-                    let max_tokens = max_tokens_map[model] ?? 4096
                     if (model.startsWith('o1-')) {
                         chat_history = chat_history.filter((message) => {return message.role !== 'system'})
                     }
@@ -582,7 +660,7 @@
                             model: model,
                             messages: claudeMessages,
                             system: system,
-                            max_tokens: 1024,
+                            max_tokens: max_tokens,
                             temperature: 0.7,
                         })
                     });
